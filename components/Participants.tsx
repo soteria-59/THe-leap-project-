@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Search, Filter, MoreHorizontal, MessageCircle, Mail, AlertCircle, Lock, Edit } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Filter, MoreHorizontal, MessageCircle, Mail, AlertCircle, Lock, Edit, Download, AlertTriangle, Phone, CheckCircle2, X } from 'lucide-react';
 import { Participant, EngagementLevel, AdminRole } from '../types';
 
 interface ParticipantsProps {
@@ -10,12 +10,151 @@ interface ParticipantsProps {
   onOpenEmail: (recipients: Participant[]) => void;
   onOpenWhatsApp: (recipients: Participant[]) => void;
   initialFilter?: EngagementLevel | 'All';
+  currentWeek: number;
 }
 
-const Participants: React.FC<ParticipantsProps> = ({ participants, userRole, onAction, onOpenEmail, onOpenWhatsApp, initialFilter = 'All' }) => {
+const ParticipantProfileModal: React.FC<{ 
+    participant: Participant; 
+    onClose: () => void; 
+    currentWeek: number;
+    onEmail: () => void;
+    onWhatsApp: () => void;
+}> = ({ participant, onClose, currentWeek, onEmail, onWhatsApp }) => {
+   // Calculations
+   const weeksSoFar = participant.weeklyProgress.filter(wp => wp.weekNumber <= currentWeek);
+   const completedCount = weeksSoFar.filter(wp => wp.status === 'Completed').length;
+   const partialCount = weeksSoFar.filter(wp => wp.status === 'Partial').length;
+   const missingCount = weeksSoFar.filter(wp => wp.status === 'Missing').length;
+   
+   // Attendance = Completed + Partial
+   const attendanceRate = Math.round(((completedCount + partialCount) / Math.max(1, currentWeek)) * 100);
+   const missedRate = Math.round((missingCount / Math.max(1, currentWeek)) * 100);
+   const isEligible = participant.completionRate >= 80;
+
+   return (
+     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200" onClick={onClose}>
+        <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+           {/* Header with Color coded background based on engagement */}
+           <div className={`h-28 ${participant.engagementLevel === 'High' ? 'bg-green-600' : participant.engagementLevel === 'Medium' ? 'bg-yellow-500' : 'bg-red-500'} relative`}>
+              <button onClick={onClose} className="absolute top-4 right-4 bg-black/20 text-white p-2 rounded-full hover:bg-black/30 transition-colors">
+                 <X className="w-5 h-5" />
+              </button>
+           </div>
+           
+           <div className="px-8 pb-8">
+              {/* Profile Image & Basic Info */}
+              <div className="relative -mt-14 mb-6 flex flex-col sm:flex-row justify-between items-end gap-4">
+                 <div className="flex items-end gap-4">
+                    <div className="w-28 h-28 rounded-full bg-white dark:bg-slate-900 p-1.5 shadow-xl">
+                       <div className="w-full h-full rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-4xl font-bold text-slate-400 dark:text-slate-500">
+                          {participant.fullName.charAt(0)}
+                       </div>
+                    </div>
+                    <div className="mb-1">
+                       <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                          {participant.fullName}
+                          {participant.isFlagged && (
+                             <span title="Flagged for review">
+                               <AlertTriangle className="w-5 h-5 text-red-500" />
+                             </span>
+                          )}
+                       </h2>
+                       <p className="text-slate-500 dark:text-slate-400 text-sm">Joined {participant.joinDate}</p>
+                    </div>
+                 </div>
+                 <div className={`px-4 py-1.5 rounded-full text-sm font-bold border flex items-center gap-2 ${isEligible ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800' : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800'}`}>
+                    {isEligible ? <CheckCircle2 className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
+                    {isEligible ? 'Eligible for Certificate' : 'Eligibility At Risk'}
+                 </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 mb-8">
+                 <button 
+                    onClick={() => { onClose(); onEmail(); }}
+                    className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                 >
+                    <Mail className="w-4 h-4" /> Send Email
+                 </button>
+                 <button 
+                    onClick={() => { onClose(); onWhatsApp(); }}
+                    className="flex-1 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                 >
+                    <MessageCircle className="w-4 h-4" /> Message
+                 </button>
+              </div>
+
+              {/* Contact Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                 <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800">
+                    <div className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-lg">
+                        <Mail className="w-4 h-4" />
+                    </div>
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{participant.email}</span>
+                 </div>
+                 <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800">
+                    <div className="p-2 bg-green-100 dark:bg-green-900/30 text-green-600 rounded-lg">
+                        <Phone className="w-4 h-4" />
+                    </div>
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{participant.whatsapp}</span>
+                 </div>
+              </div>
+
+              {/* Stats Grid */}
+              <h3 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">Performance Overview (Week 1 - {currentWeek})</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+                 <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-center shadow-sm">
+                    <p className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">{participant.completionRate}%</p>
+                    <p className="text-[10px] uppercase font-bold text-slate-400 mt-1">Total Completion</p>
+                 </div>
+                 <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-center shadow-sm">
+                    <p className="text-3xl font-bold text-green-600 dark:text-green-400">{attendanceRate}%</p>
+                    <p className="text-[10px] uppercase font-bold text-slate-400 mt-1">Attendance Rate</p>
+                 </div>
+                 <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-center shadow-sm">
+                    <p className="text-3xl font-bold text-red-500 dark:text-red-400">{missedRate}%</p>
+                    <p className="text-[10px] uppercase font-bold text-slate-400 mt-1">Missed Rate</p>
+                 </div>
+                 <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-center shadow-sm">
+                    <p className="text-3xl font-bold text-slate-700 dark:text-slate-300">{participant.journalingCount}</p>
+                    <p className="text-[10px] uppercase font-bold text-slate-400 mt-1">Journals Done</p>
+                 </div>
+              </div>
+              
+              {/* Detailed Progress Bar */}
+              <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-xl border border-slate-200 dark:border-slate-800">
+                 <div className="flex justify-between text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
+                    <span>Assignment Submission Status</span>
+                    <span>{completedCount + partialCount} / {currentWeek} Submitted</span>
+                 </div>
+                 <div className="h-3 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden flex">
+                    <div style={{ width: `${(completedCount/currentWeek)*100}%` }} className="bg-green-500 h-full" title="On Time"></div>
+                    <div style={{ width: `${(partialCount/currentWeek)*100}%` }} className="bg-yellow-500 h-full" title="Late/Partial"></div>
+                 </div>
+                 <div className="flex gap-6 mt-3">
+                    <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div> On Time ({completedCount})
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div> Late/Partial ({partialCount})
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        <div className="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-600"></div> Missing ({missingCount})
+                    </div>
+                 </div>
+              </div>
+
+           </div>
+        </div>
+     </div>
+   );
+}
+
+const Participants: React.FC<ParticipantsProps> = ({ participants, userRole, onAction, onOpenEmail, onOpenWhatsApp, initialFilter = 'All', currentWeek }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterEngagement, setFilterEngagement] = useState<EngagementLevel | 'All'>('All');
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
 
   // Sync internal filter state when initialFilter prop changes (e.g. navigation from dashboard)
   useEffect(() => {
@@ -69,13 +208,21 @@ const Participants: React.FC<ParticipantsProps> = ({ participants, userRole, onA
                 className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700"
               >
                 <Mail className="w-4 h-4" />
-                Bulk Email ({filteredParticipants.length})
+                Email
+              </button>
+              <button 
+                onClick={() => onOpenWhatsApp(filteredParticipants)}
+                className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700"
+              >
+                <MessageCircle className="w-4 h-4" />
+                Message
               </button>
               <button 
                 onClick={() => onAction('Exporting participant list to CSV...', 'success')}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700"
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700"
               >
-                Export CSV
+                <Download className="w-4 h-4" />
+                Export
               </button>
             </>
           )}
@@ -126,16 +273,16 @@ const Participants: React.FC<ParticipantsProps> = ({ participants, userRole, onA
               {filteredParticipants.map((p) => (
                 <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                   <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-300 font-bold text-xs">
+                    <button onClick={() => setSelectedParticipant(p)} className="flex items-center gap-3 text-left w-full group">
+                      <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-300 font-bold text-xs group-hover:scale-110 transition-transform">
                         {p.fullName.charAt(0)}
                       </div>
                       <div>
-                        <p className="font-medium text-slate-900 dark:text-white">{p.fullName}</p>
+                        <p className="font-medium text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{p.fullName}</p>
                         <p className="text-xs text-slate-500 dark:text-slate-400">Joined {p.joinDate}</p>
                       </div>
                       {p.isFlagged && <AlertCircle className="w-4 h-4 text-red-500 ml-2" />}
-                    </div>
+                    </button>
                   </td>
                   <td className="p-4">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getEngagementColor(p.engagementLevel)}`}>
@@ -189,7 +336,7 @@ const Participants: React.FC<ParticipantsProps> = ({ participants, userRole, onA
                                     className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md flex items-center gap-2"
                                   >
                                     <MessageCircle className="w-4 h-4 text-green-500" />
-                                    WhatsApp
+                                    Message
                                   </button>
                                   <button 
                                     onClick={() => {
@@ -233,6 +380,16 @@ const Participants: React.FC<ParticipantsProps> = ({ participants, userRole, onA
           </table>
         </div>
       </div>
+
+      {selectedParticipant && (
+         <ParticipantProfileModal 
+            participant={selectedParticipant} 
+            onClose={() => setSelectedParticipant(null)} 
+            currentWeek={currentWeek}
+            onEmail={() => onOpenEmail([selectedParticipant])}
+            onWhatsApp={() => onOpenWhatsApp([selectedParticipant])}
+         />
+      )}
     </div>
   );
 };

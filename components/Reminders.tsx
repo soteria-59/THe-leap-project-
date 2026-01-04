@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Participant, ReminderLog } from '../types';
 import { Send, Clock, Users, AlertTriangle, CheckCircle2, MessageSquare } from 'lucide-react';
@@ -19,8 +20,8 @@ const Reminders: React.FC<RemindersProps> = ({ participants, onAction, onOpenEma
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Reminders & Accountability</h1>
-          <p className="text-slate-500 dark:text-slate-400">Manage automated communications and intervene with at-risk students.</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Reminders</h1>
+          <p className="text-slate-500 dark:text-slate-400">Manage automated communications.</p>
         </div>
       </div>
 
@@ -28,26 +29,26 @@ const Reminders: React.FC<RemindersProps> = ({ participants, onAction, onOpenEma
         {/* Quick Actions Panel */}
         <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Quick Communication</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <button 
               onClick={() => onOpenEmail(participants)}
-              className="flex flex-col items-start p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors text-left w-full"
+              className="flex flex-col items-start p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors text-left w-full h-full"
             >
                <div className="bg-indigo-100 dark:bg-indigo-800 p-2 rounded-lg mb-3 text-indigo-600 dark:text-indigo-300">
                   <Send className="w-5 h-5" />
                </div>
-               <span className="font-semibold text-slate-900 dark:text-white">Release Weekly Content</span>
-               <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">Triggers Monday template to all active</span>
+               <span className="font-semibold text-slate-900 dark:text-white text-sm sm:text-base">Release Content</span>
+               <span className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">Triggers Monday template to all active</span>
             </button>
             <button 
               onClick={() => onOpenWhatsApp(accountabilityRisk)}
-              className="flex flex-col items-start p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-xl hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors text-left w-full"
+              className="flex flex-col items-start p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-xl hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors text-left w-full h-full"
             >
                <div className="bg-amber-100 dark:bg-amber-800 p-2 rounded-lg mb-3 text-amber-600 dark:text-amber-300">
                   <AlertTriangle className="w-5 h-5" />
                </div>
-               <span className="font-semibold text-slate-900 dark:text-white">Nudge Non-Responders</span>
-               <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">Sends reminder to {accountabilityRisk.length} flagged students</span>
+               <span className="font-semibold text-slate-900 dark:text-white text-sm sm:text-base">Nudge Risk</span>
+               <span className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">Sends reminder to {accountabilityRisk.length} flagged students</span>
             </button>
           </div>
         </div>
@@ -62,11 +63,11 @@ const Reminders: React.FC<RemindersProps> = ({ participants, onAction, onOpenEma
              {accountabilityRisk.slice(0, 5).map(p => (
                <div key={p.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/30 rounded-lg">
                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-600 flex items-center justify-center text-xs font-bold">
+                    <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-600 flex items-center justify-center text-xs font-bold shrink-0">
                        {p.fullName.charAt(0)}
                     </div>
                     <div>
-                       <p className="text-sm font-medium text-slate-900 dark:text-white">{p.fullName}</p>
+                       <p className="text-sm font-medium text-slate-900 dark:text-white truncate max-w-[100px]">{p.fullName}</p>
                        <p className="text-xs text-red-500">Missed check-in</p>
                     </div>
                  </div>
@@ -93,37 +94,39 @@ const Reminders: React.FC<RemindersProps> = ({ participants, onAction, onOpenEma
               Recent Communication Log
             </h3>
         </div>
-        <table className="w-full text-left">
-            <thead className="bg-slate-50 dark:bg-slate-900">
-                <tr>
-                    <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Date Sent</th>
-                    <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Template / Action</th>
-                    <th className="p-4 text-xs font-semibold text-slate-500 uppercase text-center">Recipients</th>
-                    <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Status</th>
-                </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                {MOCK_REMINDERS.map(log => (
-                    <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
-                        <td className="p-4 text-sm text-slate-600 dark:text-slate-300">{log.date}</td>
-                        <td className="p-4 font-medium text-slate-900 dark:text-white">{log.template}</td>
-                        <td className="p-4 text-center">
-                           <span className="inline-flex items-center px-2 py-1 rounded bg-slate-100 dark:bg-slate-700 text-xs font-medium text-slate-700 dark:text-slate-300">
-                             {log.recipientCount}
-                           </span>
-                        </td>
-                        <td className="p-4">
-                           <div className="flex items-center gap-2">
-                              {log.status === 'Sent' && <CheckCircle2 className="w-4 h-4 text-green-500" />}
-                              <span className={`text-sm ${log.status === 'Sent' ? 'text-green-600' : 'text-slate-500'}`}>
-                                {log.status} ({log.deliveryRate}%)
-                              </span>
-                           </div>
-                        </td>
-                    </tr>
-                ))}
-            </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left whitespace-nowrap">
+              <thead className="bg-slate-50 dark:bg-slate-900">
+                  <tr>
+                      <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Date Sent</th>
+                      <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Template / Action</th>
+                      <th className="p-4 text-xs font-semibold text-slate-500 uppercase text-center">Recipients</th>
+                      <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Status</th>
+                  </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                  {MOCK_REMINDERS.map(log => (
+                      <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                          <td className="p-4 text-sm text-slate-600 dark:text-slate-300">{log.date}</td>
+                          <td className="p-4 font-medium text-slate-900 dark:text-white">{log.template}</td>
+                          <td className="p-4 text-center">
+                            <span className="inline-flex items-center px-2 py-1 rounded bg-slate-100 dark:bg-slate-700 text-xs font-medium text-slate-700 dark:text-slate-300">
+                              {log.recipientCount}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            <div className="flex items-center gap-2">
+                                {log.status === 'Sent' && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+                                <span className={`text-sm ${log.status === 'Sent' ? 'text-green-600' : 'text-slate-500'}`}>
+                                  {log.status} ({log.deliveryRate}%)
+                                </span>
+                            </div>
+                          </td>
+                      </tr>
+                  ))}
+              </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

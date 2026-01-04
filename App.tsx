@@ -149,6 +149,7 @@ const App: React.FC = () => {
           onOpenEmail={handleOpenEmail}
           onOpenWhatsApp={handleOpenWhatsApp}
           initialFilter={participantFilter}
+          currentWeek={currentWeek}
         />;
       case 'progress':
         return <ProgressMatrix participants={participants} currentWeek={currentWeek} />;
