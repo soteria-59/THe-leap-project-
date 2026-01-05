@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Participant, AssignmentStatus } from '../types';
-import { Check, Clock, AlertTriangle, Minus, CheckCircle2, XCircle } from 'lucide-react';
+import { Check, Clock, AlertTriangle, Minus, CheckCircle2, XCircle, Activity } from 'lucide-react';
 
 interface ProgressMatrixProps {
   participants: Participant[];
@@ -31,7 +31,8 @@ const StatusCell: React.FC<{ status: AssignmentStatus }> = ({ status }) => {
 };
 
 const ProgressMatrix: React.FC<ProgressMatrixProps> = ({ participants, currentWeek }) => {
-  // Calculate Top Stats for the current week
+  // ATTENDANCE LOGIC:
+  // Derived directly from the weekly status columns.
   const weekStats = participants.reduce((acc, p) => {
       const status = p.weeklyProgress.find(w => w.weekNumber === currentWeek)?.status;
       if (status === 'Completed') acc.completed++;
@@ -67,9 +68,8 @@ const ProgressMatrix: React.FC<ProgressMatrixProps> = ({ participants, currentWe
         </div>
       </div>
 
-      {/* Top Stats Bar - Compact grid for mobile */}
+      {/* Top Stats Bar */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-            {/* Card 1: Current Week */}
             <div className="bg-indigo-600 rounded-xl p-4 sm:p-5 text-white shadow-lg shadow-indigo-200 dark:shadow-none flex items-center justify-between relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl group-hover:scale-110 transition-transform"></div>
                 <div className="relative z-10">
@@ -82,7 +82,6 @@ const ProgressMatrix: React.FC<ProgressMatrixProps> = ({ participants, currentWe
                 </div>
             </div>
             
-            {/* Card 2: Attendance Rate */}
             <div className="bg-white dark:bg-slate-800 rounded-xl p-4 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-center">
                 <div className="flex justify-between items-end mb-2">
                     <div>
@@ -96,7 +95,6 @@ const ProgressMatrix: React.FC<ProgressMatrixProps> = ({ participants, currentWe
                 </div>
             </div>
 
-            {/* Card 3: Completed */}
             <div className="bg-white dark:bg-slate-800 rounded-xl p-4 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-3 sm:gap-4">
                     <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-green-600 border border-green-100 dark:border-green-900/50 shrink-0">
                       <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -108,7 +106,6 @@ const ProgressMatrix: React.FC<ProgressMatrixProps> = ({ participants, currentWe
                     </div>
             </div>
 
-            {/* Card 4: Missing */}
             <div className="bg-white dark:bg-slate-800 rounded-xl p-4 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-3 sm:gap-4">
                     <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-600 border border-red-100 dark:border-red-900/50 shrink-0">
                       <XCircle className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -129,7 +126,7 @@ const ProgressMatrix: React.FC<ProgressMatrixProps> = ({ participants, currentWe
                 <th className="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider sticky left-0 bg-slate-50 dark:bg-slate-900 z-30 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.1)] border-r border-slate-200 dark:border-slate-700 min-w-[200px]">
                   Participant
                 </th>
-                <th className="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center w-16">
+                <th className="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center w-16" title="Academic Completion Rate">
                   %
                 </th>
                 {Array.from({ length: 12 }).map((_, i) => (
@@ -138,7 +135,7 @@ const ProgressMatrix: React.FC<ProgressMatrixProps> = ({ participants, currentWe
                   </th>
                 ))}
                 <th className="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center bg-slate-100 dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700">
-                  Journals
+                  Engagement
                 </th>
                 <th className="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center bg-slate-100 dark:bg-slate-800">
                   Assessments
@@ -148,7 +145,6 @@ const ProgressMatrix: React.FC<ProgressMatrixProps> = ({ participants, currentWe
             <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
               {participants.map((p) => (
                 <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group">
-                  {/* Sticky Name Column */}
                   <td className="p-4 sticky left-0 bg-white dark:bg-slate-800 z-10 border-r border-slate-200 dark:border-slate-700">
                     <div className={`font-medium text-sm flex items-center gap-2 w-full ${p.isFlagged ? 'text-red-600 dark:text-red-400' : 'text-slate-900 dark:text-white'}`}>
                       {p.fullName}
@@ -156,7 +152,6 @@ const ProgressMatrix: React.FC<ProgressMatrixProps> = ({ participants, currentWe
                     </div>
                   </td>
                   
-                  {/* Completion Rate */}
                   <td className="p-3 text-center">
                     <span className={`text-xs font-bold ${
                       p.completionRate >= 80 ? 'text-green-600' : 
@@ -166,17 +161,25 @@ const ProgressMatrix: React.FC<ProgressMatrixProps> = ({ participants, currentWe
                     </span>
                   </td>
 
-                  {/* 12 Weeks */}
                   {p.weeklyProgress.map((wp) => (
                     <td key={wp.weekNumber} className={`p-3 text-center border-l border-slate-100 dark:border-slate-800 ${wp.weekNumber === currentWeek ? 'bg-indigo-50/30 dark:bg-indigo-900/10' : ''}`}>
                       <StatusCell status={wp.status} />
                     </td>
                   ))}
 
-                  {/* Extras */}
+                  {/* Replaced Journals Count with Engagement Rate Percentage */}
                   <td className="p-3 text-center border-l border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
-                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{p.journalingCount}/12</span>
+                     <div className="flex items-center justify-center gap-1.5">
+                       <Activity className="w-3 h-3 text-slate-400" />
+                       <span className={`text-sm font-bold ${
+                         p.engagementScore >= 75 ? 'text-green-600' :
+                         p.engagementScore >= 50 ? 'text-yellow-600' : 'text-red-500'
+                       }`}>
+                         {p.engagementScore}%
+                       </span>
+                     </div>
                   </td>
+                  
                   <td className="p-3 text-center bg-slate-50/50 dark:bg-slate-800/50">
                     <div className="flex justify-center gap-1">
                       {[1, 2, 3].map(i => (

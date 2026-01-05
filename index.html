@@ -1,10 +1,16 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Leap Leadership Admin</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 
+      Tailwind CSS Play CDN 
+      NOTE: This script works perfectly on GitHub Pages because it runs in the browser.
+      We use a specific version (3.4.5) to ensure stability.
+    -->
+    <script src="https://cdn.tailwindcss.com/3.4.5?plugins=forms,typography,aspect-ratio,line-clamp"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
@@ -28,30 +34,24 @@
         },
       }
     </script>
-    <style>
+    <style type="text/tailwindcss">
+      @layer utilities {
+        .custom-scrollbar::-webkit-scrollbar {
+          height: 8px;
+          width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          @apply bg-slate-100 dark:bg-slate-900;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          @apply bg-slate-300 dark:bg-slate-600 rounded;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          @apply bg-slate-400;
+        }
+      }
       body {
         font-family: 'Inter', sans-serif;
-      }
-      /* Custom scrollbar for tables */
-      .custom-scrollbar::-webkit-scrollbar {
-        height: 8px;
-        width: 8px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-track {
-        background: #f1f5f9;
-      }
-      .dark .custom-scrollbar::-webkit-scrollbar-track {
-        background: #1e293b;
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 4px;
-      }
-      .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #475569;
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
       }
     </style>
   <script type="importmap">
@@ -66,7 +66,7 @@
 }
 </script>
 </head>
-  <body class="bg-gray-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+  <body class="bg-gray-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased">
     <div id="root"></div>
   </body>
 </html>

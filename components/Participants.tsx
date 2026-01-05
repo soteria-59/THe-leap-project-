@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, MoreHorizontal, MessageCircle, Mail, AlertCircle, Lock, Edit, Download, AlertTriangle, Phone, CheckCircle2, X } from 'lucide-react';
+import { Search, Filter, MoreHorizontal, MessageCircle, Mail, AlertCircle, Lock, Edit, Download, AlertTriangle, Phone, CheckCircle2, X, Activity } from 'lucide-react';
 import { Participant, EngagementLevel, AdminRole } from '../types';
 
 interface ParticipantsProps {
@@ -26,7 +26,7 @@ const ParticipantProfileModal: React.FC<{
    const partialCount = weeksSoFar.filter(wp => wp.status === 'Partial').length;
    const missingCount = weeksSoFar.filter(wp => wp.status === 'Missing').length;
    
-   // Attendance = Completed + Partial
+   // Attendance Calculation - Linked to weekly progress API data
    const attendanceRate = Math.round(((completedCount + partialCount) / Math.max(1, currentWeek)) * 100);
    const missedRate = Math.round((missingCount / Math.max(1, currentWeek)) * 100);
    const isEligible = participant.completionRate >= 80;
@@ -43,7 +43,7 @@ const ParticipantProfileModal: React.FC<{
            
            <div className="px-8 pb-8">
               {/* Profile Image & Basic Info */}
-              <div className="relative -mt-14 mb-6 flex flex-col sm:flex-row justify-between items-end gap-4">
+              <div className="relative -mt-14 mb-8 flex flex-col sm:flex-row justify-between items-end gap-4">
                  <div className="flex items-end gap-4">
                     <div className="w-28 h-28 rounded-full bg-white dark:bg-slate-900 p-1.5 shadow-xl">
                        <div className="w-full h-full rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-4xl font-bold text-slate-400 dark:text-slate-500">
@@ -68,36 +68,32 @@ const ParticipantProfileModal: React.FC<{
                  </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex gap-3 mb-8">
+              {/* Actionable Contact Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
                  <button 
                     onClick={() => { onClose(); onEmail(); }}
-                    className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                    className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-200 dark:hover:border-blue-800 transition-all text-left group"
                  >
-                    <Mail className="w-4 h-4" /> Send Email
+                    <div className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-lg group-hover:scale-110 transition-transform">
+                        <Mail className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                        <span className="text-xs text-slate-500 dark:text-slate-400 block mb-0.5">Email Address</span>
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate block">{participant.email}</span>
+                    </div>
                  </button>
                  <button 
                     onClick={() => { onClose(); onWhatsApp(); }}
-                    className="flex-1 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                    className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800 hover:bg-green-50 dark:hover:bg-green-900/20 hover:border-green-200 dark:hover:border-green-800 transition-all text-left group"
                  >
-                    <MessageCircle className="w-4 h-4" /> Message
+                    <div className="p-2 bg-green-100 dark:bg-green-900/30 text-green-600 rounded-lg group-hover:scale-110 transition-transform">
+                        <MessageCircle className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                        <span className="text-xs text-slate-500 dark:text-slate-400 block mb-0.5">WhatsApp Number</span>
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors truncate block">{participant.whatsapp}</span>
+                    </div>
                  </button>
-              </div>
-
-              {/* Contact Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                 <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800">
-                    <div className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-lg">
-                        <Mail className="w-4 h-4" />
-                    </div>
-                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{participant.email}</span>
-                 </div>
-                 <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800">
-                    <div className="p-2 bg-green-100 dark:bg-green-900/30 text-green-600 rounded-lg">
-                        <Phone className="w-4 h-4" />
-                    </div>
-                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{participant.whatsapp}</span>
-                 </div>
               </div>
 
               {/* Stats Grid */}
@@ -105,7 +101,7 @@ const ParticipantProfileModal: React.FC<{
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
                  <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-center shadow-sm">
                     <p className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">{participant.completionRate}%</p>
-                    <p className="text-[10px] uppercase font-bold text-slate-400 mt-1">Total Completion</p>
+                    <p className="text-[10px] uppercase font-bold text-slate-400 mt-1">Assignments</p>
                  </div>
                  <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-center shadow-sm">
                     <p className="text-3xl font-bold text-green-600 dark:text-green-400">{attendanceRate}%</p>
@@ -116,8 +112,10 @@ const ParticipantProfileModal: React.FC<{
                     <p className="text-[10px] uppercase font-bold text-slate-400 mt-1">Missed Rate</p>
                  </div>
                  <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-center shadow-sm">
-                    <p className="text-3xl font-bold text-slate-700 dark:text-slate-300">{participant.journalingCount}</p>
-                    <p className="text-[10px] uppercase font-bold text-slate-400 mt-1">Journals Done</p>
+                    <p className="text-3xl font-bold text-slate-700 dark:text-slate-300 flex items-center justify-center gap-1">
+                       {participant.engagementScore}<span className="text-sm font-normal">%</span>
+                    </p>
+                    <p className="text-[10px] uppercase font-bold text-slate-400 mt-1">Engagement</p>
                  </div>
               </div>
               

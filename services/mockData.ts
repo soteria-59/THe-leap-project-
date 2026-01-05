@@ -1,5 +1,5 @@
 
-import { Participant, Cohort, AssignmentStatus, WeeklyProgress, EngagementLevel, OnboardingStatus, AdminUser, Notification, ReminderLog, Resource, AuditLogEntry } from '../types';
+import { Participant, Cohort, AssignmentStatus, WeeklyProgress, EngagementLevel, OnboardingStatus, AdminUser, Notification, ReminderLog, Resource, AuditLogEntry, ScheduledReminder } from '../types';
 
 const NAMES = [
   "Alice Johnson", "Bob Smith", "Charlie Davis", "Diana Evans", "Ethan Hall",
@@ -15,7 +15,7 @@ const getRandomStatus = (weight: number): AssignmentStatus => {
   return 'Pending'; // Future weeks
 };
 
-const calculateEngagement = (rate: number): EngagementLevel => {
+const calculateEngagementLevel = (rate: number): EngagementLevel => {
   if (rate >= 85) return 'High';
   if (rate >= 60) return 'Medium';
   return 'Low';
@@ -25,7 +25,18 @@ export const generateMockParticipants = (count: number, currentWeek: number): Pa
   return Array.from({ length: count }).map((_, index) => {
     const name = NAMES[index % NAMES.length] + (index >= NAMES.length ? ` ${index}` : '');
     
-    // Generate progress
+    // -------------------------------------------------------------------------
+    // API INTEGRATION POINT: Google Classroom
+    // -------------------------------------------------------------------------
+    // When the API is connected, this 'weeklyProgress' array will be populated 
+    // by fetching coursework submissions from Google Classroom.
+    // The system calculates "Attendance" automatically based on this array.
+    // 
+    // Example API logic:
+    // const submissions = await googleClassroom.courses.courseWork.studentSubmissions.list(...)
+    // const weeklyProgress = mapSubmissionsToWeeks(submissions);
+    // -------------------------------------------------------------------------
+    
     const weeklyProgress: WeeklyProgress[] = [];
     let completedTasks = 0;
 
@@ -45,13 +56,21 @@ export const generateMockParticipants = (count: number, currentWeek: number): Pa
       });
     }
 
+    // 2. Calculate Task Completion Rate (Academic Progress)
+    const totalWeeksDue = Math.max(1, currentWeek);
+    const completionRate = Math.min(100, Math.round((completedTasks / totalWeeksDue) * 100));
+
+    // 3. Generate Engagement Data (Journals + Checkins)
+    // NOTE: This can also be pulled from an API (e.g., Typeform or Google Forms responses)
     const journalingCount = Math.floor(Math.random() * (currentWeek + 1));
+    const accountabilityCheckins = Math.floor(Math.random() * (currentWeek + 1));
     const selfAssessmentsCompleted = currentWeek > 8 ? Math.floor(Math.random() * 4) : currentWeek > 4 ? Math.floor(Math.random() * 2) : 0;
     
-    // Simple calculation logic
-    const totalDue = (currentWeek - 1) * 2; // Tasks + Journals roughly
-    const actual = completedTasks + (journalingCount > currentWeek ? currentWeek : journalingCount); 
-    const completionRate = Math.min(100, Math.round((actual / (Math.max(1, totalDue))) * 100));
+    // 4. Calculate Engagement Score (Participation)
+    // Formula: (Journals + Checkins) / (Total Possible Opportunities)
+    const totalPossibleEngagement = (currentWeek * 2); // 1 Journal + 1 Checkin per week
+    const actualEngagement = journalingCount + accountabilityCheckins;
+    const engagementScore = Math.min(100, Math.round((actualEngagement / Math.max(1, totalPossibleEngagement)) * 100));
 
     return {
       id: `p-${index + 1}`,
@@ -60,13 +79,18 @@ export const generateMockParticipants = (count: number, currentWeek: number): Pa
       whatsapp: `+1 (555) 000-${1000 + index}`,
       joinDate: '2023-09-01',
       onboardingStatus: Math.random() > 0.1 ? 'Joined' : 'Invited',
-      engagementLevel: calculateEngagement(completionRate),
+      
+      // Level depends on both academic completion and engagement score
+      engagementLevel: calculateEngagementLevel((completionRate * 0.6) + (engagementScore * 0.4)),
+      
       weeklyProgress,
       journalingCount,
       selfAssessmentsCompleted,
-      accountabilityCheckins: Math.floor(Math.random() * currentWeek),
-      isFlagged: completionRate < 60,
+      accountabilityCheckins,
+      
+      isFlagged: completionRate < 60 || engagementScore < 50,
       completionRate,
+      engagementScore, // New percentage field
       notes: Math.random() > 0.8 ? "Missed check-in last week." : ""
     };
   });
@@ -134,6 +158,44 @@ export const MOCK_REMINDERS: ReminderLog[] = [
   { id: 'r-2', date: '2023-10-23 09:00', template: 'Week 7 Accountability Nudge', recipientCount: 12, deliveryRate: 92, status: 'Sent' },
   { id: 'r-3', date: '2023-10-19 09:00', template: 'Week 7 Content Release', recipientCount: 45, deliveryRate: 98, status: 'Sent' },
   { id: 'r-4', date: '2023-10-16 09:00', template: 'Week 6 Accountability Nudge', recipientCount: 8, deliveryRate: 100, status: 'Sent' },
+];
+
+export const MOCK_SCHEDULED_REMINDERS: ScheduledReminder[] = [
+  { 
+    id: 'sr-1', 
+    title: 'Weekly Content Drop', 
+    messageBody: 'Week {week} content is now live!', 
+    type: 'Recurring', 
+    frequency: 'Weekly', 
+    dayOfWeek: 'Monday', 
+    time: '09:00', 
+    audience: 'All', 
+    status: 'Active', 
+    nextRun: 'Monday, 9:00 AM' 
+  },
+  { 
+    id: 'sr-2', 
+    title: 'Low Engagement Nudge', 
+    messageBody: 'Hi {name}, we missed you last week. Reply if you need support.', 
+    type: 'Recurring', 
+    frequency: 'Weekly', 
+    dayOfWeek: 'Thursday', 
+    time: '14:00', 
+    audience: 'Low Engagement', 
+    status: 'Active', 
+    nextRun: 'Thursday, 2:00 PM' 
+  },
+  { 
+    id: 'sr-3', 
+    title: 'Program Feedback Survey', 
+    messageBody: 'Please fill out the mid-program survey here: link...', 
+    type: 'One-time', 
+    targetDate: '2023-11-15', 
+    time: '10:00', 
+    audience: 'All', 
+    status: 'Active', 
+    nextRun: 'Nov 15, 10:00 AM' 
+  }
 ];
 
 export const MOCK_RESOURCES: Resource[] = [

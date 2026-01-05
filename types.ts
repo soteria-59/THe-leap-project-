@@ -22,13 +22,14 @@ export interface Participant {
   
   // Progress Data
   weeklyProgress: WeeklyProgress[]; // Array of 12 weeks
-  journalingCount: number; // Max 12
+  journalingCount: number; // Internal data
   selfAssessmentsCompleted: number; // Max 3
-  accountabilityCheckins: number;
+  accountabilityCheckins: number; // Internal data
   
   // Computed flags
   isFlagged: boolean;
-  completionRate: number; // 0-100
+  completionRate: number; // Academic completion (Assignments)
+  engagementScore: number; // Participation rate (Journals + Checkins)
 }
 
 export interface Cohort {
@@ -77,6 +78,20 @@ export interface ReminderLog {
   recipientCount: number;
   deliveryRate: number; // percentage
   status: 'Sent' | 'Scheduled' | 'Failed';
+}
+
+export interface ScheduledReminder {
+  id: string;
+  title: string;
+  messageBody: string;
+  type: 'One-time' | 'Recurring';
+  frequency?: 'Daily' | 'Weekly' | 'Monthly'; // If recurring
+  dayOfWeek?: string; // e.g., 'Monday'
+  time: string; // "09:00"
+  targetDate?: string; // For one-time
+  audience: 'All' | 'Low Engagement' | 'High Engagement' | 'Medium Engagement';
+  status: 'Active' | 'Paused';
+  nextRun: string;
 }
 
 // Resources & Learning Tracks
